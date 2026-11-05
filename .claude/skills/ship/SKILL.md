@@ -10,9 +10,9 @@ disable-model-invocation: true
 입력: `$ARGUMENTS` (비어 있거나 `F5` 같은 기능 번호)
 
 기준 문서
-- 기능 목록·상태: `feature/LearnFlow/PRD.md` §4 표 (✅ 완료 · 🟡 일부 완료 · ⬜ 아직 안 만듦)
+- 기능 목록·상태: `feature/WONMORE/PRD.md` §4 표 (✅ 완료 · 🟡 일부 완료 · ⬜ 아직 안 만듦)
 - 작업 규칙: 저장소 루트 `CLAUDE.md` — 이 스킬의 모든 단계에서 지킨다
-- 앱 위치: `feature/LearnFlow/app/`
+- 앱 위치: `feature/WONMORE/app/`
 
 ## 1단계. 기능 고르기
 
@@ -48,7 +48,7 @@ disable-model-invocation: true
 
 ## 4단계. 검사하기
 1. `tests/`에 이 기능의 테스트를 추가한다. 화면 동작은 `streamlit.testing.v1.AppTest`로, 저장 위치는 `tmp_path`로 바꿔서 테스트한다.
-2. `feature/LearnFlow/app`에서 `.venv/Scripts/python -m pytest -q`를 실행한다.
+2. `feature/WONMORE/app`에서 `.venv/Scripts/python -m pytest -q`를 실행한다.
 3. 실패하면 고치고 다시 실행한다. 3번 고쳐도 실패하면 멈추고 실패 내용을 한국어로 알린다.
 4. 검수 에이전트(`.claude/agents/`)가 있으면 이 기능을 검수하게 한다. 지적 사항은 고치거나 사용자에게 알린다.
 
