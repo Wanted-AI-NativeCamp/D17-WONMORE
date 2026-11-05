@@ -2,8 +2,7 @@
 전체적으로 화이트 기반의 깔끔한 UI를 유지하면서, 화면마다 다른 포인트 컬러로 개성을 주는 방향.
 값은 `WONMORE/Designsystem.md` §1(원티드 브랜드 컬러 + 접근성 보정)을 따른다.
 - 메인 홈: Blue + Violet 조합 (Sky Blue는 장식 보조)
-- 초심자 학습: Blue
-- 숙련자 학습: Violet (글자·CTA는 `--advanced-strong`)
+- 학습 화면 강조색: 보기 모드와 상관없이 **Blue → Violet 그라데이션 하나** (`--grad`, CTA는 `--grad-strong`, 선택 배경은 `--grad-soft` + 보라 단색 테두리 `--accent-border`)
 - 공동 학습 아카이브: Pink (장식만)
 - 경고 시멘틱 컬러: Orange (아이콘·테두리) + `--warning` (글자)
 
@@ -50,6 +49,15 @@
   /* Shadow (몽타주 단계 이름) */
   --shadow-xsmall: 0 1px 2px rgba(20, 25, 30, 0.06);
   --shadow-medium: 0 4px 16px rgba(20, 25, 30, 0.10);
+
+  /* Unified accent (LearnFlow) */
+  --grad: linear-gradient(120deg, #0066FF, #8364FF);
+  --grad-strong: linear-gradient(120deg, #0057D9, #6541F2);
+  --grad-soft: linear-gradient(120deg, #EBF3FF, #F3F0FF);
+  --accent: #4165FF;
+  --accent-strong: #3D4FE6;
+  --accent-soft: #EEF0FF;
+  --accent-border: #8364FF;  /* 강조 테두리는 보라 하나 */
 
   /* Spacing */
   --space-unit: 8px;

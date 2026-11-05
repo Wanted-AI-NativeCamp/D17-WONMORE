@@ -1,0 +1,26 @@
+[theme]
+base = "light"
+primaryColor = "#4165FF"  # 블루·바이올렛 중간값 (체크박스·포커스 등 Streamlit 기본 강조)
+backgroundColor = "#FAFAFC"
+secondaryBackgroundColor = "#F0F4F8"
+textColor = "#252832"
+# 글꼴은 Streamlit 설정으로 지정한다 (CSS로 덮어쓰면 화살표 같은 아이콘 글꼴까지 바뀌어 깨진다)
+font = "Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif"
+headingFont = "Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif"
+codeFont = "ui-monospace, 'SF Mono', Consolas, monospace"
+
+[[theme.fontFaces]]
+family = "Pretendard"
+url = "https://cdn.jsdelivr.net/npm/pretendard@1.3.9/dist/web/variable/woff2/PretendardVariable.woff2"
+weight = "45 920"
+style = "normal"
+
+[client]
+toolbarMode = "minimal"
+
+[browser]
+gatherUsageStats = false
+
+[server]
+# 교육 자료 업로드 최대 크기(MB). lib/upload.py의 MAX_BYTES(20MB)와 맞춘다
+maxUploadSize = 20

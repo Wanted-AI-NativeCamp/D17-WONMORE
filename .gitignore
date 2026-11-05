@@ -18,3 +18,6 @@ __pycache__/
 .DS_Store
 Thumbs.db
 .vscode/
+
+# 스킬 검색 데이터는 커밋한다 (위 Data/ 규칙이 Windows에서 data/ 폴더까지 막으므로 예외)
+!.claude/skills/ui-ux-pro-max/data/
