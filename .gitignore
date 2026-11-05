@@ -4,12 +4,20 @@ Data/
 # 수업 자료에서 생성된 결과물
 **/lessons.generated.json
 
-# Node / Vite
-node_modules/
-dist/
-.vite/
+# 개인 학습 데이터 (LearnFlow)
+.userdata/
+
+# Python / Streamlit
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.streamlit/secrets.toml
 
 # OS / 에디터
 .DS_Store
 Thumbs.db
 .vscode/
+
+# 스킬 검색 데이터는 커밋한다 (위 Data/ 규칙이 Windows에서 data/ 폴더까지 막으므로 예외)
+!.claude/skills/ui-ux-pro-max/data/
