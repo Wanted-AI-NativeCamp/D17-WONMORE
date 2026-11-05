@@ -1,0 +1,15 @@
+# 원본 수업 자료 (재배포 권한 미확인)
+Data/
+
+# 수업 자료에서 생성된 결과물
+**/lessons.generated.json
+
+# Node / Vite
+node_modules/
+dist/
+.vite/
+
+# OS / 에디터
+.DS_Store
+Thumbs.db
+.vscode/
