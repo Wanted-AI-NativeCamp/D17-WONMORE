@@ -1,6 +1,6 @@
 # 회고 기록
 
-## 2026-11-06 · WONMORE 학습 캘린더 (feature/LearnFlow)
+## 2026-11-06 · WONMORE 학습 캘린더 (feature/WONMORE)
 직군: 개발자 · 기획자 · 디자이너 · 마케터
 
 ---
