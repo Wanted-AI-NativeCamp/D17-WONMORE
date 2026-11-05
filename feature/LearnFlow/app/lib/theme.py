@@ -24,7 +24,7 @@ BASE_CSS = """
   --font-mono: ui-monospace, "SF Mono", Consolas, monospace;
   --bg:#FAFAFC; --surface:#FFFFFF; --surface-subtle:#F0F4F8;
   --text-strong:#14191E; --text-primary:#252832; --text-secondary:#5F6673; --border:#E6E8EF;
-  --warning-accent:#FF5C00; --warning:#B85A20; --warning-bg:#FFF1E6;
+  --warning-accent:#FF5C00; --warning:#9A4A19; --warning-bg:#FFF1E6;
   --radius-card:20px; --radius-button:12px; --radius-tag:999px;
 }
 /* 글꼴은 .streamlit/config.toml(theme.font, fontFaces)에서 지정한다. 아이콘 글꼴을 덮어쓰지 않도록 여기서 font-family를 전역으로 바꾸지 않는다. */
@@ -110,14 +110,25 @@ button[kind="primary"]:disabled, button[kind="primaryFormSubmit"]:disabled{ opac
   background:var(--surface); box-shadow:0 0 0 100vmax var(--surface); clip-path:inset(0 -100vmax -1px -100vmax); }
 [data-testid="stLayoutWrapper"]:has(> .st-key-lf_gnb)::after{ content:""; position:absolute; left:-100vmax; right:-100vmax; bottom:-1px; height:1px; background:var(--border); }
 .st-key-lf_gnb{ min-height:64px; flex-wrap:nowrap; }
-.st-key-lf_logo, .lf-gnb-end{ width:160px; flex:none; }
+/* GNB: 로고 영역과 메뉴 영역을 나눈다. 로고는 오른쪽 여백을 두고 고정, 화면이 줄면 메뉴가 그만큼 밀린다(따로 바뀌는 규칙 없음) */
+.st-key-lf_logo{ width:auto !important; flex:none !important; margin-right:32px; }
+.lf-gnb-end{ display:none; }
 .st-key-lf_logo{ position:relative; gap:0 !important; }
 .lf-logo{ display:flex; align-items:center; gap:8px; font-size:20px; font-weight:800; letter-spacing:-0.02em; color:var(--text-strong); }
 .st-key-gnb_logo{ position:absolute; inset:0; z-index:1; }
 .st-key-gnb_logo .stButton, .st-key-gnb_logo button{ width:100%; height:100%; }
 .st-key-gnb_logo button{ opacity:0; cursor:pointer; }
 .st-key-lf_logo:has(button:focus-visible) .lf-logo{ outline:2px solid var(--accent-border); outline-offset:4px; border-radius:6px; }
-.st-key-lf_nav{ flex:1; flex-wrap:nowrap; }
+/* 메뉴는 항상 한 줄. Streamlit이 메뉴를 한 겹 더 감싸므로 바깥 상자에도 같은 규칙을 준다
+   (바깥 상자가 좁게 줄어들면 메뉴가 한 개씩 세로로 쌓였다) */
+[data-testid="stLayoutWrapper"]:has(> .st-key-lf_nav){ flex:1 1 auto !important; width:auto !important; }
+.st-key-lf_nav{ flex:1 1 auto; flex-wrap:nowrap !important; justify-content:flex-start !important; width:auto !important; }
+.st-key-lf_nav > *{ flex:none !important; width:auto !important; }
+/* 좁은 화면: 메뉴 버튼 사이 간격과 버튼 양옆 여백을 줄여 한 줄에 더 잘 들어가게 */
+@media (max-width: 640px){
+  .st-key-lf_nav{ gap:2px !important; }
+  .st-key-lf_nav button{ padding:6px 8px !important; }
+}
 .st-key-lf_nav button{ padding:6px 14px !important; }
 .st-key-lf_nav button p{ font-size:15px; font-weight:500; color:var(--text-primary); white-space:nowrap; }
 .st-key-lf_nav button:hover p{ color:var(--text-strong); }
@@ -130,10 +141,6 @@ button[kind="primary"]:disabled, button[kind="primaryFormSubmit"]:disabled{ opac
 .st-key-lf_nav button:focus-visible{ outline:2px solid var(--text-secondary); outline-offset:2px; }
 [class*="st-key-gnbon_"] button{ background:var(--surface-subtle) !important; }
 [class*="st-key-gnbon_"] button p{ font-weight:700; color:var(--text-strong) !important; }
-@media (max-width: 640px){
-  .st-key-lf_logo{ width:auto; } .lf-gnb-end{ display:none; }
-  .lf-logo{ font-size:17px; } .st-key-lf_nav button{ padding:6px 8px !important; } .st-key-lf_nav button p{ font-size:14px; }
-}
 
 /* 캠프 일정 */
 .st-key-lf_cal{ padding:24px !important; border:1px solid var(--border) !important; border-radius:var(--radius-card) !important; background:var(--surface); }
@@ -143,7 +150,7 @@ button[kind="primary"]:disabled, button[kind="primaryFormSubmit"]:disabled{ opac
 .lf-unit{ padding:8px 10px; border-radius:var(--radius-button); background:var(--surface-subtle); font-size:13px; line-height:18px;
   border:2px solid transparent; transition: background-color .2s ease-out, border-color .2s ease-out; }
 .lf-unit.sel{ background: var(--grad-soft); border:1px solid var(--accent-border); }
-.lf-today{ display:inline-block; margin-left:6px; padding:0 6px; border-radius:var(--radius-tag); background:#6541F2; color:#fff; font-size:11px; line-height:16px; font-weight:600; }  /* [오늘] 태그는 어디서나 보라 단색 */
+.lf-today{ display:inline-block; margin-left:6px; padding:0 6px; border-radius:var(--radius-tag); background:#6541F2; color:#fff; font-size:12px; line-height:16px; font-weight:600; }  /* [오늘] 태그는 어디서나 보라 단색 */
 /* 구간 카드 위에 투명 버튼을 겹쳐서, 카드 전체를 눌러 구간을 고르게 한다 */
 [class*="st-key-lfunit_"]{ position:relative; gap:0 !important; }
 [class*="st-key-lfpick_"]{ position:absolute; inset:0; z-index:1; }
@@ -154,7 +161,7 @@ button[kind="primary"]:disabled, button[kind="primaryFormSubmit"]:disabled{ opac
 .lf-unit-date{ display:block; font-size:12px; color:var(--text-secondary); font-weight:600; }
 .lf-unit-tag{ display:block; font-size:12px; color:var(--text-secondary); }
 .lf-unit-title{ font-weight:600; color:var(--text-strong); }
-.lf-event{ display:inline-block; margin-left:6px; padding:0 8px; border-radius:var(--radius-tag); background:#14191E; color:#fff; font-size:11px; line-height:18px; }
+.lf-event{ display:inline-block; margin-left:6px; padding:0 8px; border-radius:var(--radius-tag); background:#14191E; color:#fff; font-size:12px; line-height:18px; }
 .lf-group{ display:flex; align-items:center; gap:8px; margin:20px 0 8px; font-size:16px; color:var(--text-strong); }
 .lf-rec-sec{ margin:12px 0 4px; font-size:14px; font-weight:600; color:var(--text-strong); }
 .lf-rec{ padding:8px 12px; border:1px solid var(--border); border-radius:var(--radius-button); margin-bottom:6px; }
@@ -174,8 +181,8 @@ button[kind="primary"]:disabled, button[kind="primaryFormSubmit"]:disabled{ opac
 .lf-cell.holiday{ background:repeating-linear-gradient(135deg, var(--surface-subtle) 0 6px, #fff 6px 12px); color:var(--text-secondary); }
 .lf-cell.sel{ border-color:var(--accent-strong); box-shadow:inset 0 0 0 1px var(--accent-strong); }
 .lf-cell-day{ font-size:14px; font-weight:700; color:var(--text-strong); }
-.lf-cell-dn{ font-size:11px; font-weight:600; color:var(--accent-strong); }
-.lf-cell-note{ font-size:11px; color:var(--text-primary); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.lf-cell-dn{ font-size:12px; font-weight:600; color:var(--accent-strong); }
+.lf-cell-note{ font-size:12px; color:var(--text-primary); display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
 .lf-cell .lf-event, .lf-cell .lf-today{ margin-left:0; align-self:flex-start; }
 [class*="st-key-lfcell_"]{ position:relative; gap:0 !important; }
 [class*="st-key-lfday_"]{ position:absolute; inset:0; z-index:1; }
@@ -200,7 +207,7 @@ button[kind="primary"]:disabled, button[kind="primaryFormSubmit"]:disabled{ opac
 .lf-blk-day{ flex:1; font-size:14px; font-weight:700; color:var(--text-strong); display:flex; align-items:center; gap:4px; }
 .lf-blk.off .lf-blk-day, .lf-blk.holiday .lf-blk-day{ color:var(--text-secondary); font-weight:600; }
 .lf-blk-body{ display:flex; flex-direction:column; align-items:flex-start; gap:2px; }
-.lf-blk-tag{ font-size:11px; color:var(--text-secondary); }
+.lf-blk-tag{ font-size:12px; color:var(--text-secondary); }
 .lf-blk-title{ font-size:13px; font-weight:700; color:var(--text-strong); }
 .lf-blk.sel .lf-blk-title{ color:var(--accent-strong); }
 .lf-blk .lf-event, .lf-blk .lf-today{ margin-left:0; }
@@ -254,7 +261,7 @@ button[kind="primary"]:disabled, button[kind="primaryFormSubmit"]:disabled{ opac
 [class*="st-key-lfdsec_"]:has(button:focus-visible) .lf-dsec{ outline:2px solid var(--accent-border); outline-offset:2px; }
 
 /* 지나간 날: 연한 회색 글자 + 연한 바탕 (사용자 요청으로 보조 정보 취급, 대비 약 2.6:1) */
-:root{ --past-text:#A3A9B4; --past-bg:#F8F9FB; }
+:root{ --past-text:#767D88; --past-bg:#F8F9FB; }
 .lf-blk-day.past{ color:var(--past-text); font-weight:600; }
 .lf-blk.past{ background:var(--past-bg); }
 .lf-blk.past .lf-blk-title, .lf-blk.past .lf-blk-tag, .lf-blk.past .lf-cell-dn{ color:var(--past-text); }
@@ -355,7 +362,8 @@ button[kind="segmented_control"]:hover p{ color:var(--accent-strong) !important;
 /* 월별 보기 "선택한 구간": 오른쪽 정렬 + 날짜 버튼 3칸 격자(모든 칸 = 가장 넓은 버튼 폭) */
 .st-key-lf_monthpanel .lf-eyebrow, .st-key-lf_monthpanel .lf-muted{ text-align:right; }
 .st-key-lf_monthpanel .lf-list-unit{ justify-content:flex-end; }
-.st-key-lf_datebtns{ display:grid !important; grid-template-columns:repeat(2, 1fr); gap:8px; width:fit-content !important; max-width:100%; margin-left:auto; }  /* 오른쪽 폭이 좁아져 한 줄에 2개 */
+[data-testid="stLayoutWrapper"]:has(> .st-key-lf_datebtns){ width:100% !important; align-self:stretch !important; }  /* 바깥 상자도 꽉 채움 */
+.st-key-lf_datebtns{ display:grid !important; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px; width:100% !important; max-width:100%; margin-left:0; box-sizing:border-box; }  /* 한 줄에 2개, 아래 카드와 같은 너비로 꽉 채움 */
 .st-key-lf_datebtns > *{ width:100% !important; min-width:0; }
 .st-key-lf_datebtns .stButton, .st-key-lf_datebtns button{ width:100% !important; }
 @media (max-width: 767px){ .st-key-lf_datebtns{ grid-template-columns:repeat(3, 1fr); } }  /* 좁은 화면은 캘린더 아래로 내려가 폭이 넓어지므로 3개 */
@@ -368,7 +376,8 @@ button[kind="segmented_control"]:hover p{ color:var(--accent-strong) !important;
 /* 일별 보기: [태그] 아래 대주제(h1) */
 .lf-daily-unit{ text-align:center; margin-top:8px; }
 .lf-daily-unit .lf-list-unit{ margin:0; }
-.lf-daily-topic{ margin:6px 0 0 !important; padding:0 !important; text-align:center; }
+.lf-daily-topic{ margin:6px 0 0 !important; padding:0 !important; text-align:center;
+  font-size:28px !important; line-height:38px !important; letter-spacing:-0.0236em; font-weight:700 !important; }
 
 /* 일별 보기: ‹ mm.dd › 를 대주제와 같은 가운데 기준에 두고, [오늘] 버튼은 그 오른쪽 바깥에 */
 .st-key-lf_daycore{ position:relative; overflow:visible; }
@@ -392,7 +401,7 @@ button[kind="segmented_control"]:hover p{ color:var(--accent-strong) !important;
 }
 
 /* 일별 보기 학습 목록 카드: 넓은 화면(1101px~) 3열, 중간(641~1100px) 2열, 좁은 화면(~640px) 1열 */
-.st-key-lf_dseclist{ display:grid !important; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:8px; }
+.st-key-lf_dseclist{ display:grid !important; grid-template-columns:minmax(0, 1fr); gap:8px; }  /* 학습 목록: 한 줄에 하나 */
 .st-key-lf_dseclist > *{ min-width:0; width:100% !important; }
 /* 여백 줄어드는 시점 통일: 학습 목록이 2열이 되는 1100px에서 일별·월별·전체 일정·배너의 안쪽 여백을 함께 줄인다
    (3열 카드는 1100px 아래에서 한 칸이 300px 안팎으로 좁아져 답답해지므로 이때 2열로 바꾼다) */
@@ -401,17 +410,207 @@ button[kind="segmented_control"]:hover p{ color:var(--accent-strong) !important;
 [data-testid="stMainBlockContainer"]{ padding-left:80px !important; padding-right:80px !important; }
 @media (max-width: 1100px){
   [data-testid="stMainBlockContainer"]{ padding-left:32px !important; padding-right:32px !important; }
-  .st-key-lf_dseclist{ grid-template-columns:repeat(2, minmax(0, 1fr)); }
   .st-key-lf_daily, .st-key-lf_cal{ padding:16px !important; }
   .st-key-lf_hero{ padding:24px; }
 }
-@media (max-width: 640px){ .st-key-lf_dseclist{ grid-template-columns:minmax(0, 1fr); }
+@media (max-width: 640px){
   [data-testid="stMainBlockContainer"]{ padding-left:16px !important; padding-right:16px !important; } }
 
 /* 좁은 화면: 일별(11/5)·월별(11월)·전체 일정(10월~1월) 날짜 제목 크기를 월별 기준(20px)으로 통일 */
 @media (max-width: 640px){
   .lf-day-title, .lf-cal-title, .lf-month-head{ font-size:20px !important; line-height:28px !important; }
 }
+
+/* 위쪽 애매한 여백 제거: CSS·스크립트만 들어 있는 st.html 칸은 화면에 보이는 내용이 없으므로 자리를 차지하지 않게 */
+[data-testid="stElementContainer"]:has(> [data-testid="stHtml"] > script:only-child),
+[data-testid="stElementContainer"]:has(> [data-testid="stHtml"] > style:only-child){ display:none !important; }
+
+/* 일별·월별·전체 일정 스위치: 제목 아래 둘째 줄로 내려오면(Streamlit 칸이 세로로 쌓이는 640px 이하) 양옆을 꽉 채운다 */
+@media (max-width: 640px){
+  .st-key-lf_viewtoggle{ justify-content:stretch !important; width:100% !important; }
+  .st-key-lf_viewtoggle > *, .st-key-lf_viewtoggle [data-testid="stButtonGroup"]{ flex:1 1 100% !important; width:100% !important; max-width:100% !important; }
+  .st-key-lf_viewtoggle [data-testid="stButtonGroup"] div:has(> button){ display:flex !important; width:100% !important; }
+  .st-key-lf_viewtoggle [data-testid="stButtonGroup"] button{ flex:1 1 0 !important; min-width:0; }
+}
+
+
+/* 캘린더 흰 카드(일별·월별·전체 일정): 반투명 흰 바탕 + 블러 */
+.st-key-lf_cal, .st-key-lf_daily{ background:rgba(255,255,255,.72) !important;
+  -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); }
+
+/* 월별: 선택한 구간 요약을 좁은 화면에서는 ‹ n월 › 아래(캘린더 카드 안)에 보여주고,
+   오른쪽 패널의 같은 안내 문구는 숨긴다(날짜 버튼은 그대로) */
+.lf-month-unit{ display:none; text-align:center; }
+.lf-month-unit .lf-list-unit{ margin:0; }
+.lf-month-unit-title{ margin:6px 0 2px; font-size:20px; line-height:28px; font-weight:700; color:var(--text-strong); overflow-wrap:anywhere; }
+.lf-month-unit .lf-muted{ margin:0; font-size:14px; line-height:20px; }
+@media (max-width: 767px){
+  .lf-month-unit{ display:block; }
+  .st-key-lf_monthpanel [data-testid="stElementContainer"]:has(.lf-unit-when){ display:none !important; }
+}
+
+/* 일별 학습 목록 + 미리보기
+   - 넓은 화면 2:1, 1100px 이하 1:1, 640px 이하는 위아래로 쌓이고 목록 카드 대신 숫자 버튼만 */
+.lf-dsec{ min-height:0 !important; }
+.lf-dsec.sel{ background:var(--grad-soft) !important; border-color:var(--accent-border) !important; }
+.st-key-lf_dnums{ display:none !important; }
+/* 숨긴 숫자 버튼 줄의 바깥 상자도 숨겨 빈 간격(8px)이 생기지 않게 (좁은 화면에서는 아래에서 다시 보인다) */
+[data-testid="stLayoutWrapper"]:has(> .st-key-lf_dnums){ display:none !important; }
+.st-key-lf_dpreview{ background:var(--surface-subtle); border-radius:var(--radius-card); padding:16px !important; gap:12px; }
+.lf-dprev-title{ margin:4px 0 8px !important; padding:0 !important; font-size:18px !important; line-height:26px !important; overflow-wrap:anywhere; }
+.lf-dprev ul{ margin:0 0 8px 18px; padding:0; font-size:14px; line-height:22px; color:var(--text-primary); }
+.lf-dprev-text{ margin:0; font-size:14px; line-height:22px; color:var(--text-secondary); overflow-wrap:anywhere; }
+@media (max-width: 1100px){
+  .st-key-lf_dsplit [data-testid="stColumn"]{ flex:1 1 0% !important; width:auto !important; min-width:0 !important; }
+}
+@media (max-width: 640px){
+  /* 1:1 규칙을 풀고 위아래로 쌓는다 (목록 숫자 → 그 아래 미리보기) */
+  .st-key-lf_dsplit [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]){ flex-direction:column !important; }  /* 칸 상자에만 (숫자 버튼 줄 제외) */
+  .st-key-lf_dsplit [data-testid="stColumn"]{ flex:1 1 100% !important; width:100% !important; }
+  .st-key-lf_dseclist{ display:none !important; }
+  .st-key-lf_dnums{ display:flex !important; flex-direction:row !important; flex-wrap:wrap !important; gap:6px !important; }
+  [data-testid="stLayoutWrapper"]:has(> .st-key-lf_dnums){ display:flex !important; }
+  .st-key-lf_dnums > *{ width:auto !important; flex:none !important; }
+  .st-key-lf_dnums button{ width:40px !important; height:40px !important; min-height:40px !important; padding:0 !important;
+    border-radius:999px !important; background:#FFFFFF !important; border:1px solid var(--border) !important; }
+  [class*="st-key-lfdnumsel_"] button{ background:var(--grad-soft) !important; border-color:var(--accent-border) !important; }
+  [class*="st-key-lfdnumsel_"] button p{ color:var(--accent-strong) !important; font-weight:700; }
+}
+
+/* 일별: 대주제(h2) 아래 그날 수업 제목 소제목(h3) */
+.lf-daily-sub{ margin:4px 0 0 !important; padding:0 !important; text-align:center; font-size:16px !important; line-height:24px !important;
+  font-weight:600 !important; color:var(--text-secondary) !important; overflow-wrap:anywhere; }
+
+/* 과제 뽐내기: 정사각형 썸네일 타일 갤러리 (마지막 + 타일 = 새 등록) */
+.st-key-lf_showhead{ margin-top:8px; }
+.st-key-lf_showgrid{ gap:12px !important; }
+[class*="st-key-lfshowtile_"], [class*="st-key-lfshowadd_"]{ position:relative; gap:4px !important; width:112px !important; }
+.lf-tile{ width:112px; height:112px; border-radius:12px; overflow:hidden; border:1px solid var(--border); background:var(--surface-subtle);
+  display:flex; align-items:center; justify-content:center; }
+.lf-tile{ background:#FFFFFF !important; }
+.lf-tile-img{ width:100%; height:100%; object-fit:contain; display:block; padding:10px; box-sizing:border-box; }  /* 로고가 잘리지 않게 전체 보이기 */
+.lf-tile-logo{ padding:14px; }
+.lf-tile-big{ width:100% !important; height:200px !important; }
+.lf-tile-ph{ font-size:32px; font-weight:700; color:var(--text-secondary); }
+.lf-tile-add{ border:1.5px dashed var(--border); background:var(--surface); }
+.lf-tile-add span{ font-size:32px; line-height:1; color:var(--text-secondary); font-weight:300; }
+.lf-tile-cap{ width:112px; font-size:13px; line-height:18px; color:var(--text-primary); font-weight:600;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; text-align:center; }
+[class*="st-key-lfshowopen_"], [class*="st-key-lfshowaddbtn_"]{ position:absolute; inset:0; z-index:1; }
+[class*="st-key-lfshowopen_"] .stButton, [class*="st-key-lfshowopen_"] button,
+[class*="st-key-lfshowaddbtn_"] .stButton, [class*="st-key-lfshowaddbtn_"] button{ width:100%; height:100%; }
+[class*="st-key-lfshowopen_"] button, [class*="st-key-lfshowaddbtn_"] button{ opacity:0; cursor:pointer; }
+[class*="st-key-lfshowtile_"]:hover .lf-tile, [class*="st-key-lfshowadd_"]:hover .lf-tile{ border-color:var(--accent-border); }
+[class*="st-key-lfshowtile_"]:has(button:focus-visible) .lf-tile,
+[class*="st-key-lfshowadd_"]:has(button:focus-visible) .lf-tile{ outline:2px solid var(--accent-border); outline-offset:2px; }
+
+/* 일별: 오른쪽 미리보기 카드 높이를 왼쪽 학습 목록 높이에 맞춘다 (나란히 놓일 때만) */
+@media (min-width: 641px){
+  .st-key-lf_dsplit [data-testid="stHorizontalBlock"]:has(> [data-testid="stColumn"]){ align-items:stretch !important; }
+  .st-key-lf_dsplit [data-testid="stColumn"]{ display:flex; flex-direction:column; }
+  .st-key-lf_dsplit [data-testid="stColumn"] div:has(.st-key-lf_dpreview){ flex:1 1 auto; display:flex; flex-direction:column; }
+  .st-key-lf_dpreview{ flex:1 1 auto; }
+  .st-key-lf_dpreview [data-testid="stElementContainer"]:has(.lf-dprev){ flex:1 1 auto; }
+}
+
+/* 선택한 구간: [태그] 위, 제목 아래로 쌓기 (월별은 오른쪽 정렬, 전체 일정은 왼쪽 정렬) */
+.lf-unit-stack{ display:flex; flex-direction:column; align-items:flex-start; gap:4px; margin:6px 0 2px; }
+.lf-unit-stack-title{ font-size:18px; line-height:26px; font-weight:700; color:var(--text-strong); overflow-wrap:anywhere; }
+.st-key-lf_monthpanel .lf-unit-stack{ align-items:flex-end; text-align:right; }
+
+/* 월별 보기: "선택한 구간" 글자는 숨긴다 */
+.st-key-lf_monthpanel .lf-eyebrow{ display:none; }
+
+/* 월별: 1100px 이하에서는 오른쪽 정보 파트를 캘린더 아래로 (캘린더 주 칸에는 걸리지 않게 바깥 칸 상자에만) */
+@media (max-width: 1100px){
+  .st-key-lf_msplit > [data-testid="stLayoutWrapper"] > [data-testid="stHorizontalBlock"],
+  .st-key-lf_msplit > [data-testid="stHorizontalBlock"]{ flex-direction:column !important; }
+  .st-key-lf_msplit > [data-testid="stLayoutWrapper"] > [data-testid="stHorizontalBlock"] > [data-testid="stColumn"],
+  .st-key-lf_msplit > [data-testid="stHorizontalBlock"] > [data-testid="stColumn"]{ width:100% !important; flex:1 1 100% !important; }
+}
+
+/* 전체 일정: 넓은 화면은 날짜 토글, 767px 이하는 월별과 같은 날짜 버튼 */
+.st-key-lf_allpanel .st-key-lf_datebtns, .st-key-lf_allpanel [data-testid="stLayoutWrapper"]:has(> .st-key-lf_datebtns){ display:none !important; }
+@media (max-width: 767px){
+  .st-key-lf_allpanel .st-key-lf_alltoggle{ display:none !important; }
+  .st-key-lf_allpanel [data-testid="stLayoutWrapper"]:has(> .st-key-lf_datebtns){ display:flex !important; }
+  .st-key-lf_allpanel .st-key-lf_datebtns{ display:grid !important; }
+}
+
+/* 학습 캘린더 일별: 선택하지 않은 학습 목록은 글자를 연하게 */
+.lf-dsec:not(.sel) .lf-dsec-body b{ color:var(--text-secondary); font-weight:500; }
+
+/* 조별 편성 */
+.lf-team{ padding:10px 12px; border:1px solid var(--border); border-radius:var(--radius-button); margin-bottom:8px; background:var(--surface); }
+.lf-team-name{ font-size:14px; font-weight:700; color:var(--text-strong); margin-bottom:6px; }
+.lf-members{ display:flex; flex-wrap:wrap; gap:6px; }
+.lf-member{ display:inline-flex; align-items:center; gap:4px; padding:2px 10px; border-radius:var(--radius-tag);
+  background:var(--surface-subtle); font-size:13px; line-height:20px; color:var(--text-primary); }
+.lf-member.absent{ color:var(--past-text); text-decoration:line-through; }
+.lf-absent-tag{ text-decoration:none; display:inline-block; padding:0 6px; border-radius:var(--radius-tag);
+  background:var(--warning-bg); color:var(--warning); font-size:12px; font-weight:600; }
+
+/* 학습 기록 탭 */
+.lf-rec-day{ margin:16px 0 6px; font-size:14px; color:var(--text-strong); display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+
+/* 조별 편성: 참석 / 불참 줄 나누기 */
+.lf-att-row{ display:flex; align-items:flex-start; gap:8px; margin-top:6px; }
+.lf-att-label{ flex:none; min-width:44px; font-size:12px; line-height:24px; font-weight:600; color:var(--text-secondary); }
+.lf-att-label.away{ color:var(--warning); }
+.lf-member.absent{ background:var(--warning-bg); color:var(--warning); text-decoration:none; }
+
+/* 기록: 구간마다 카드 하나, 그 안에 한 줄씩 */
+.lf-recsec-head{ display:flex; align-items:center; justify-content:space-between; gap:8px;
+  font-size:14px; font-weight:700; color:var(--text-strong); margin-bottom:2px; }
+.lf-recrow{ display:flex; flex-wrap:wrap; align-items:center; gap:6px; font-size:14px; line-height:20px; }
+.lf-recrow .lf-muted{ margin:0; font-size:12px; }
+.lf-recrow-text{ flex-basis:100%; color:var(--text-primary); white-space:pre-wrap; overflow-wrap:anywhere; }
+[class*="st-key-lfrecsec_"], [class*="st-key-lfdaysec_"]{ gap:4px !important; }
+
+/* 수업 화면 "D? 기록": 카드 머리의 구간 이름 버튼 */
+[class*="st-key-lfdaysec_"] [class*="st-key-jump_"] button{ padding:0 !important; min-height:0 !important; justify-content:flex-start; }
+[class*="st-key-lfdaysec_"] [class*="st-key-jump_"] button p{ font-size:14px; font-weight:700; color:var(--text-strong) !important; text-align:left; }
+[class*="st-key-lfdaysec_"] [class*="st-key-jump_"] button:hover p{ color:var(--accent-strong) !important; text-decoration:underline; }
+
+/* 조별 편성: 조원마다 참석/불참 버튼 */
+[class*="st-key-lfteam_"]{ gap:6px !important; }
+[class*="st-key-lfatt_"]{ gap:8px !important; }
+[class*="st-key-lfatt_"] [data-testid="stButtonGroup"] button{ min-height:28px !important; padding:2px 10px !important; }
+[class*="st-key-lfatt_"] [data-testid="stButtonGroup"] button p{ font-size:12px !important; }
+
+/* 관리자 모드: 구간별 진행 현황 */
+.lf-prow{ display:flex; align-items:center; gap:8px; padding:8px 10px; border:1px solid var(--border);
+  border-radius:var(--radius-button); margin-bottom:6px; background:var(--surface); }
+.lf-prow.cur{ border-color:var(--accent-border); }
+.lf-prow-body{ flex:1; min-width:0; display:flex; flex-direction:column; font-size:13px; line-height:18px; }
+.lf-prow-body b{ overflow-wrap:anywhere; color:var(--text-strong); }
+
+/* 수업 화면 오른쪽 위: 다음 구간만 있으면 오른쪽 끝, 이전만 있으면 왼쪽 끝 (둘 다면 양쪽) */
+.st-key-lf_secnav{ flex-wrap:nowrap !important; }
+.st-key-lf_lessonhead{ gap:10px !important; }
+
+/* 관리자 진행 현황: 줄을 누르면 이동 (투명 버튼 겹치기) */
+[class*="st-key-lfprow_"]{ position:relative; gap:0 !important; }
+[class*="st-key-lfprowgo_"]{ position:absolute; inset:0; z-index:1; }
+.st-key-lf_prowlist{ gap:6px !important; }  /* 진행 현황 카드 사이 6px */
+.st-key-lf_prowlist .lf-prow{ margin-bottom:0; }
+[class*="st-key-lfprowgo_"] .stButton, [class*="st-key-lfprowgo_"] button{ width:100%; height:100%; }
+[class*="st-key-lfprowgo_"] button{ opacity:0; cursor:pointer; }
+[class*="st-key-lfprow_"]:hover .lf-prow:not(.cur){ border-color:var(--accent-border); }
+[class*="st-key-lfprow_"]:has(button:focus-visible) .lf-prow{ outline:2px solid var(--accent-border); outline-offset:2px; }
+
+/* 체크 단계 탭: 탭 이름이 길어 한 줄로 두고 가로로 넘겨 본다 */
+/* 단계 탭: 번호만 원형으로. 선택 = 보라 바탕 흰 글자, 선택 안 됨 = 회색 */
+.st-key-lf_steptabs [data-baseweb="tab-list"]{ gap:8px; overflow-x:auto; scrollbar-width:thin; padding:4px 2px; }
+.st-key-lf_steptabs [data-baseweb="tab-highlight"], .st-key-lf_steptabs [data-baseweb="tab-border"]{ display:none !important; }
+.st-key-lf_steptabs [role="tab"]{ width:34px; height:34px; min-width:34px; padding:0 !important; border-radius:50% !important;
+  display:inline-flex; align-items:center; justify-content:center; background:#E6E8EF; flex:none; }
+.st-key-lf_steptabs [role="tab"] p{ font-size:14px; font-weight:700; color:var(--text-secondary) !important; margin:0; }
+.st-key-lf_steptabs [role="tab"][aria-selected="true"]{ background:#6541F2; }
+.st-key-lf_steptabs [role="tab"][aria-selected="true"] p{ color:#FFFFFF !important; }
+.st-key-lf_steptabs [role="tab"]:hover:not([aria-selected="true"]){ background:#D9DCE3; }
+.st-key-lf_steptabs [role="tab"]:focus-visible{ outline:2px solid var(--accent-border); outline-offset:2px; }
+.st-key-lf_steptabs .lf-content ol.steps{ padding-left:0; list-style:none; margin:8px 0 0; }
 
 /* 원본 수업 본문 재구성 */
 .lf-content{ color:var(--text-primary); font-size:16px; line-height:26px; overflow-wrap:anywhere; }
@@ -440,3 +639,4 @@ button[kind="segmented_control"]:hover p{ color:var(--accent-strong) !important;
 def inject(mode: str | None = None) -> None:
     """mode는 호환을 위해 받기만 한다. 강조색은 모드와 상관없이 같다."""
     st.html(f"<style>{BASE_CSS}\n:root{{{ACCENT_VARS}}}</style>")
+    st.html("<script>document.documentElement.lang = 'ko';</script>", unsafe_allow_javascript=True)

@@ -38,7 +38,7 @@
 
   /* Semantic */
   --warning-accent: #FF5C00;     /* 원티드 Orange, 아이콘·테두리 */
-  --warning: #B85A20;            /* 경고 글자 (4.6:1), WONMORE 보정값 */
+  --warning: #9A4A19;            /* 경고 글자 (5.6:1 경고 바탕), WONMORE 보정값 */
   --warning-bg: #FFF1E6;
 
   /* Shape */

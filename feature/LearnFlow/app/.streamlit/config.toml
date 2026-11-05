@@ -1,6 +1,6 @@
 [theme]
 base = "light"
-primaryColor = "#4165FF"  # 블루·바이올렛 중간값 (체크박스·포커스 등 Streamlit 기본 강조)
+primaryColor = "#6541F2"  # 블루·바이올렛 중간값 (체크박스·포커스 등 Streamlit 기본 강조)
 backgroundColor = "#FAFAFC"
 secondaryBackgroundColor = "#F0F4F8"
 textColor = "#252832"

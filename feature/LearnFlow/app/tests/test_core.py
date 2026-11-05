@@ -276,19 +276,21 @@ def test_month_view_has_narrow_screen_unit_list(tmp_path, monkeypatch):
 
 
 def test_gnb_pages_open(tmp_path, monkeypatch):
-    """상단 메뉴의 세 화면(홈·교육 모아보기·기록 모아보기)이 기록 0개여도 에러 없이 열린다."""
+    """상단 메뉴의 화면(학습 캘린더·교육 모아보기·학습 기록·관리자)이 기록 0개여도 에러 없이 열린다."""
     from streamlit.testing.v1 import AppTest
 
     monkeypatch.setattr(storage, "DEFAULT_PATH", tmp_path / "learnflow.v1.json")
     app = str(Path(__file__).resolve().parents[1] / "app.py")
-    for page, active in ((None, "home"), ("lessons", "lessons"), ("records", "records")):
+    for page, active in ((None, "home"), ("lessons", "lessons"), ("records", "records"), ("admin", "admin_btn")):
         at = AppTest.from_file(app, default_timeout=30)
         if page:
             at.query_params["page"] = page
         at.run()
         assert not at.exception
         assert f"gnbon_{active}" in [b.key for b in at.button]
-    assert any(m.value == "**아직 남긴 기록이 없어요.**" for m in at.markdown)
+        if page == "records":
+            assert len(at.tabs) == 3  # 체크인 / 어려움·해결 / 발견
+            assert any("아직 체크인 기록이 없어요" in c.value for c in at.caption)
 
 
 def test_records_page_lists_saved_records(tmp_path, monkeypatch):
@@ -304,8 +306,9 @@ def test_records_page_lists_saved_records(tmp_path, monkeypatch):
     at.query_params["page"] = "records"
     at.run()
     assert not at.exception
-    keys = [b.key for b in at.button]
-    assert "rec_proj_12" in keys and "rec_open_D3" in keys
+    # 체크인은 첫 탭, 프로젝트 기간 어려움 메모는 둘째 탭에 쌓인다
+    assert "체크인 기록 1" in at.tabs[0].label and "어려운 구간" in at.tabs[1].label and at.tabs[1].label.endswith("1")
+    assert at.tabs[2].label.endswith("0")
 
 
 def test_daily_step_skips_weekends_and_holidays():
@@ -503,3 +506,297 @@ def test_month_view_uses_date_buttons(tmp_path, monkeypatch):
     assert not at.exception
     assert any(b.key and b.key.startswith("lfdate_") for b in at.button)  # 날짜마다 따로 버튼
     assert not any(s.key and s.key.startswith("date_pick_") for s in at.segmented_control)  # 토글 아님
+
+
+def test_theme_css_braces_balanced():
+    """CSS 괄호 짝이 안 맞으면 브라우저가 뒤의 규칙을 통째로 무시한다 (흰 카드가 사라졌던 원인)."""
+    import re
+    from lib import theme
+
+    css = re.sub(r"/\*.*?\*/", "", theme.BASE_CSS, flags=re.S)
+    depth = 0
+    for ch in css:
+        if ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            assert depth >= 0, "짝이 없는 } 가 있다"
+    assert depth == 0, "닫히지 않은 { 가 있다"
+
+
+def test_daily_list_and_preview(tmp_path, monkeypatch):
+    from streamlit.testing.v1 import AppTest
+
+    monkeypatch.setattr(storage, "DEFAULT_PATH", tmp_path / "learnflow.v1.json")
+    at = AppTest.from_file(str(Path(__file__).resolve().parents[1] / "app.py"), default_timeout=30)
+    at.session_state["sel_date"] = __import__("datetime").date(2026, 10, 16)  # D3 (구간 8개)
+    at.run()
+    assert not at.exception
+    keys = [b.key for b in at.button]
+    assert "lfdgo_D3" in keys and "lfdnum_D3_0" in keys  # 미리보기 상세보기 버튼, 좁은 화면용 숫자 버튼
+    # 셋째 구간을 누르면 미리보기가 바뀌고, 상세보기를 누르면 그 구간이 열린다
+    at.button(key="lfdopen_D3_2").click().run()
+    assert not at.exception
+    at.button(key="lfdgo_D3").click().run()
+    assert at.query_params.get("day") == "D3"
+    lessons = json.loads(LESSONS_JSON.read_text(encoding="utf-8"))
+    d3 = next(l for l in lessons if l["id"] == "D3")
+    assert at.query_params.get("sec") == d3["sections"][2]["id"]
+
+
+def test_section_excerpt_uses_original_text_only():
+    from lib.lessons import section_excerpt
+
+    sec = {"blocks": [{"html": "<p>설치 <b>먼저</b></p><script>x()</script><p>그다음 실행</p>"}]}
+    assert section_excerpt(sec) == "설치 먼저 그다음 실행"
+    assert section_excerpt({"blocks": [{"html": "<p>" + "가" * 300 + "</p>"}]}, limit=10) == "가" * 10 + "…"
+
+
+def test_showcase_link_validation_and_delete():
+    d = storage.default_data()
+    with pytest.raises(ValueError):
+        pg.add_showcase(d, "2026-11-05", "  ", "정산왕", [], "", NOW)
+    with pytest.raises(ValueError):
+        pg.add_showcase(d, "2026-11-05", "javascript:alert(1)", "정산왕", [], "", NOW)
+    with pytest.raises(ValueError):
+        pg.add_showcase(d, "2026-11-05", "github.com/me", "정산왕", [], "", NOW)
+    with pytest.raises(ValueError):  # 서비스 이름 필수
+        pg.add_showcase(d, "2026-11-05", "https://github.com/me/hw", "  ", [], "", NOW)
+    it = pg.add_showcase(d, "2026-11-05", " https://github.com/me/hw ", "정산왕",
+                         pg.parse_members("홍길동, 김철수 ,, 홍길동"), "배포", NOW)
+    assert it["url"] == "https://github.com/me/hw" and it["note"] == "배포"
+    assert it["name"] == "정산왕" and it["members"] == ["홍길동", "김철수"]
+    assert pg.delete_item(d, "showcases", it["id"]) and d["showcases"] == []
+
+
+def test_showcase_section_in_daily_view(tmp_path, monkeypatch):
+    from datetime import date
+    from streamlit.testing.v1 import AppTest
+
+    path = tmp_path / "learnflow.v1.json"
+    data = storage.default_data()
+    pg.add_showcase(data, "2026-11-05", "https://example.com/hw", "정산왕", ["홍길동"], "", NOW)
+    storage.save(data, path, NOW)
+    monkeypatch.setattr(storage, "DEFAULT_PATH", path)
+    at = AppTest.from_file(str(Path(__file__).resolve().parents[1] / "app.py"), default_timeout=30)
+    at.session_state["sel_date"] = date(2026, 11, 5)
+    at.run()
+    assert not at.exception
+    assert any(b.key == "show_add_2026-11-05" for b in at.button)  # 링크 등록하기 버튼
+    keys = [b.key for b in at.button]
+    assert any(k and k.startswith("lfshowopen_") for k in keys)  # 등록한 과제 타일
+    assert "lfshowaddbtn_2026-11-05" in keys  # 맨 끝 + 타일
+
+
+def test_thumbnail_storage(tmp_path):
+    path = tmp_path / "learnflow.v1.json"
+    with pytest.raises(storage.StorageError):
+        storage.save_thumbnail("abc", b"x", "image/gif", path)
+    with pytest.raises(storage.StorageError):
+        storage.save_thumbnail("abc", b"x" * (storage.THUMB_MAX_BYTES + 1), "image/png", path)
+    name = storage.save_thumbnail("abc", b"\x89PNG", "image/png", path)
+    assert name == "abc.png"
+    assert storage.load_thumbnail(name, path) == (b"\x89PNG", "image/png")
+    assert storage.load_thumbnail("../learnflow.v1.json", path) is None  # 폴더 밖 파일은 읽지 않는다
+
+
+def test_default_logo_asset_exists():
+    assert (Path(__file__).resolve().parents[1] / "assets" / "wonmore_logo_thumb.png").exists()
+
+
+def test_daily_view_progress_and_no_duplicate_panel(tmp_path, monkeypatch):
+    from datetime import date
+    from streamlit.testing.v1 import AppTest
+
+    monkeypatch.setattr(storage, "DEFAULT_PATH", tmp_path / "learnflow.v1.json")
+    at = AppTest.from_file(str(Path(__file__).resolve().parents[1] / "app.py"), default_timeout=30)
+    at.session_state["sel_date"] = date(2026, 11, 5)  # D17
+    at.run()
+    assert not at.exception
+    assert any("구간 완료" in (p.proto.text or "") for p in at.get("progress"))  # 학습 목록 위 완료율
+    assert not any(b.key and b.key.startswith("panel_open_") for b in at.button)  # 일별 아래 중복 카드 없음
+
+
+def test_teams_and_absences():
+    d = storage.default_data()
+    with pytest.raises(ValueError):
+        pg.add_team(d, " ", [], 1)
+    t = pg.add_team(d, "1조", ["홍길동", "김철수"], 1)
+    with pytest.raises(ValueError):
+        pg.add_team(d, "1조", [], 1)
+    pg.add_team(d, "1조", ["박민수"], 2)  # 다른 차수면 같은 이름 가능
+    pg.add_team(d, "2조", ["이영희", "홍길동"], 1)
+    assert pg.all_members(d, 2) == ["박민수"]
+    assert pg.all_members(d, 1) == ["홍길동", "김철수", "이영희"]
+    pg.set_absences(d, "2026-11-05", ["김철수", "김철수"])
+    assert d["absences"] == {"2026-11-05": ["김철수"]}
+    pg.set_absences(d, "2026-11-05", [])
+    assert d["absences"] == {}
+    assert pg.delete_item(d, "teams", t["id"]) and [x["name"] for x in d["teams"]] == ["1조", "2조"]
+
+
+def test_lesson_page_left_side_has_nav_checkin_and_teams(tmp_path, monkeypatch):
+    from streamlit.testing.v1 import AppTest
+
+    path = tmp_path / "learnflow.v1.json"
+    d = storage.default_data()
+    pg.add_team(d, "1조", ["홍길동", "김철수"], 1)
+    pg.add_team(d, "A조", ["다른차수"], 2)
+    pg.set_absences(d, "2026-10-16", ["김철수"])  # D3 = 1차 기간
+    storage.save(d, path, NOW)
+    monkeypatch.setattr(storage, "DEFAULT_PATH", path)
+    at = AppTest.from_file(str(Path(__file__).resolve().parents[1] / "app.py"), default_timeout=30)
+    at.query_params["day"] = "D3"
+    at.run()
+    assert not at.exception
+    keys = [b.key for b in at.button]
+    assert "sec_next" in keys and "sec_prev" not in keys  # 첫 구간: 다음만
+    assert any(k and k.startswith("ck_D3_") for k in keys)  # 수강생 모드: 체크인
+    assert "조별 편성" in " ".join(m.value for m in at.markdown)  # 조별 편성은 수강생 모드에
+    html = " ".join(h.proto.body for h in at.get("html"))
+    assert "1조" in html and "불참" in html and "A조" not in html  # 그 날짜 차수의 조만
+    assert "참석 1" in html and "불참 1" in html  # 1조: 홍길동 참석, 김철수 불참
+    # 수강생 모드에서 바로 참석/불참 바꾸기: 김철수를 참석으로
+    seg = next(s for s in at.segmented_control if s.key and s.key.startswith("att_2026-10-16_") and s.key.endswith("_김철수"))
+    assert seg.value == "absent"
+    seg.set_value("present").run()
+    assert not at.exception
+    assert json.loads(path.read_text(encoding="utf-8"))["absences"] == {}
+    assert any(b.key == "lfprowgo_0" for b in at.button)  # 수강생 모드도 구간별 진행 현황
+    assert not any(r.key and r.key.startswith("nav_D3_") for r in at.radio)  # 라디오 구간 네비게이터 없음
+    at.segmented_control(key="role_select").set_value("admin").run()  # 관리자 모드로
+    assert not at.exception
+    keys = [b.key for b in at.button]
+    assert not any(k and k.startswith("ck_D3_") for k in keys)  # 관리자 모드: 체크인 없음
+    assert not any(r.key and r.key.startswith("nav_D3_") for r in at.radio)  # 관리자: 구간 네비게이터 없음
+    at.button(key="lfprowgo_2").click().run()  # 진행 현황 셋째 줄 → 그 구간으로
+    lessons = json.loads(LESSONS_JSON.read_text(encoding="utf-8"))
+    d3 = next(l for l in lessons if l["id"] == "D3")
+    assert at.query_params.get("sec") == d3["sections"][2]["id"]
+    html = " ".join(h.proto.body for h in at.get("html"))
+    assert "lf-prow" in html  # 구간별 진행 현황
+    assert "조별 편성" not in " ".join(m.value for m in at.markdown)  # 관리자 모드에는 조별 편성 없음
+    at.button(key="sec_next").click().run()
+    keys = [b.key for b in at.button]
+    assert "sec_next" in keys and "sec_prev" in keys  # 가운데 구간: 둘 다
+
+
+def test_checkin_doing_keeps_section_in_progress():
+    d = storage.default_data()
+    pg.add_checkin(d, "D3", "a", "doing", "", NOW)
+    assert pg.get_status(d, "D3", "a") == "doing"
+    assert pg.latest_checkin(d, "D3", "a")["level"] == "doing"
+    pg.add_checkin(d, "D3", "a", "good", "", NOW)
+    assert pg.get_status(d, "D3", "a") == "done"
+
+
+def test_team_rounds():
+    from datetime import date
+    from lib import schedule as sch
+
+    assert sch.round_for_date(date(2026, 10, 6)) == 1 and sch.round_for_date(date(2026, 10, 27)) == 1
+    assert sch.round_for_date(date(2026, 10, 30)) is None  # 1차 프로젝트 기간
+    assert sch.round_for_date(date(2026, 11, 4)) == 2 and sch.round_for_date(date(2026, 11, 24)) == 2
+    assert sch.round_for_date(date(2026, 11, 25)) is None
+
+
+def test_checkins_grouped_by_section(tmp_path, monkeypatch):
+    from streamlit.testing.v1 import AppTest
+
+    path = tmp_path / "learnflow.v1.json"
+    d = storage.default_data()
+    for lvl in ("doing", "struggling", "good"):
+        pg.add_checkin(d, "D3", "s1", lvl, "", NOW)
+    pg.add_checkin(d, "D3", "s2", "stuck", "막힘", NOW)
+    storage.save(d, path, NOW)
+    monkeypatch.setattr(storage, "DEFAULT_PATH", path)
+    at = AppTest.from_file(str(Path(__file__).resolve().parents[1] / "app.py"), default_timeout=30)
+    at.query_params["page"] = "records"
+    at.run()
+    assert not at.exception
+    html = " ".join(h.proto.body for h in at.get("html"))
+    assert html.count('class="lf-recsec-head"') == 2  # 체크인 4개 → 구간 카드 2개 (s1: 3개, s2: 1개)
+    assert "3개" in html and "1개" in html
+    assert sum(1 for b in at.button if b.key and b.key.startswith("del_")) == 4  # 기록마다 삭제는 그대로
+
+
+def test_set_attendance():
+    d = storage.default_data()
+    pg.set_attendance(d, "2026-10-16", "김철수", present=False)
+    pg.set_attendance(d, "2026-10-16", "김철수", present=False)
+    assert d["absences"] == {"2026-10-16": ["김철수"]}
+    pg.set_attendance(d, "2026-10-16", "김철수", present=True)
+    assert d["absences"] == {}
+
+
+def test_split_steps_and_step_tabs(tmp_path, monkeypatch):
+    from streamlit.testing.v1 import AppTest
+    from lib.lessons import split_steps
+
+    html = ('<p>앞</p><ol class="steps"><li class="step"><h3>준비 <small>(10분)</small></h3>a</li>'
+            '<li class="step"><h3>실행</h3>b</li></ol><p>뒤</p>')
+    pre, steps, post = split_steps(html)
+    assert "앞" in pre and "뒤" in post and [t for t, _ in steps] == ["1. 준비", "2. 실행"]
+    assert split_steps("<p>단계 없음</p>") is None
+
+    monkeypatch.setattr(storage, "DEFAULT_PATH", tmp_path / "learnflow.v1.json")
+    lessons = json.loads(LESSONS_JSON.read_text(encoding="utf-8"))
+    sec = next(l for l in lessons if l["id"] == "D17")["sections"][2]
+    at = AppTest.from_file(str(Path(__file__).resolve().parents[1] / "app.py"), default_timeout=30)
+    at.query_params["day"] = "D17"
+    at.query_params["sec"] = sec["id"]
+    at.run()
+    assert not at.exception
+    assert len(at.tabs) == 11 and at.tabs[0].label == "1" and at.tabs[10].label == "11"  # 번호만
+
+
+def test_section_counts_for_admin():
+    d = storage.default_data()
+    assert pg.section_counts([d], "D3", "a") == {"total": 0, "doing": 0, "done": 0, "stuck": 0}  # 학습하기 안 함
+    pg.mark_opened(d, "D3", "a", NOW)
+    assert pg.section_counts([d], "D3", "a") == {"total": 1, "doing": 1, "done": 0, "stuck": 0}
+    pg.add_checkin(d, "D3", "a", "good", "", NOW)
+    assert pg.section_counts([d], "D3", "a")["done"] == 1
+    pg.add_checkin(d, "D3", "b", "stuck", "막힘", NOW)
+    assert pg.section_counts([d], "D3", "b") == {"total": 1, "doing": 0, "done": 0, "stuck": 1}
+    other = storage.default_data()  # 여러 수강생 집계도 같은 함수로
+    pg.mark_opened(other, "D3", "a", NOW)
+    assert pg.section_counts([d, other], "D3", "a") == {"total": 2, "doing": 1, "done": 1, "stuck": 0}
+
+
+def test_update_team():
+    d = storage.default_data()
+    a = pg.add_team(d, "1조", ["홍길동"], 1)
+    pg.add_team(d, "2조", ["김철수"], 1)
+    with pytest.raises(ValueError):
+        pg.update_team(d, a["id"], "2조", [], 1)  # 같은 차수 이름 중복
+    with pytest.raises(ValueError):
+        pg.update_team(d, a["id"], "  ", [], 1)
+    pg.update_team(d, a["id"], "1조", ["홍길동", "이영희"], 2)  # 조원 추가 + 차수 변경
+    assert a["members"] == ["홍길동", "이영희"] and a["round"] == 2
+    with pytest.raises(ValueError):
+        pg.update_team(d, "없는id", "x", [], 1)
+
+
+def test_admin_team_edit_button(tmp_path, monkeypatch):
+    from streamlit.testing.v1 import AppTest
+
+    path = tmp_path / "learnflow.v1.json"
+    d = storage.default_data()
+    t = pg.add_team(d, "1조", ["홍길동"], 1)
+    storage.save(d, path, NOW)
+    monkeypatch.setattr(storage, "DEFAULT_PATH", path)
+    at = AppTest.from_file(str(Path(__file__).resolve().parents[1] / "app.py"), default_timeout=30)
+    at.query_params["page"] = "admin"
+    at.run()
+    assert not at.exception
+    at.button(key=f"edit_{t['id']}").click().run()
+    assert not at.exception
+    assert any(b.key == f"te_save_{t['id']}" for b in at.button)  # 수정 창이 열림
+
+
+def test_checkin_watch_counts_as_done():
+    d = storage.default_data()
+    pg.add_checkin(d, "D3", "a", "watch", "", NOW)
+    assert pg.get_status(d, "D3", "a") == "done"
+    assert pg.LEVEL_LABEL["watch"] == "관전"

@@ -21,7 +21,10 @@ DEFAULT_DATA = {
     "checkins": [],
     "notes": [],
     "resume": None,
-    "prefs": {"mode": "beginner", "job": "common", "os": "win"},
+    "prefs": {"mode": "beginner", "job": "common", "os": "win", "role": "student"},  # role: 수업 화면 수강생/관리자 모드
+    "showcases": [],
+    "teams": [],      # 조 편성: {id, name, members:[이름]}
+    "absences": {},   # 불참: {"YYYY-MM-DD": [이름]}  # 과제 뽐내기 링크: {id, date(YYYY-MM-DD), url, note, created_at}
 }
 
 
@@ -88,3 +91,43 @@ def save(data: dict, path: Path | None = None, now: datetime | None = None) -> N
     except OSError as e:
         print(f"[storage] 저장 실패: {e!r}")
         raise StorageError("기록을 저장하지 못했습니다. 디스크 공간이나 폴더 권한을 확인한 뒤 다시 시도해 주세요.") from e
+
+
+# ---------- 과제 뽐내기 썸네일 이미지 ----------
+THUMB_TYPES = {"image/png": "png", "image/jpeg": "jpg", "image/webp": "webp"}
+THUMB_MAX_BYTES = 2 * 1024 * 1024  # 2MB
+
+
+def thumb_dir(path: Path | None = None) -> Path:
+    return (path or DEFAULT_PATH).parent / "thumbnails"
+
+
+def save_thumbnail(item_id: str, content: bytes, mime: str, path: Path | None = None) -> str:
+    """썸네일을 .userdata/thumbnails/<id>.<확장자> 로 저장하고 파일 이름을 돌려준다. 실패하면 StorageError(한국어)."""
+    ext = THUMB_TYPES.get(mime)
+    if not ext:
+        raise StorageError("썸네일은 PNG, JPG, WEBP 이미지만 올릴 수 있어요.")
+    if len(content) > THUMB_MAX_BYTES:
+        raise StorageError("썸네일 이미지는 2MB 이하로 올려 주세요.")
+    folder = thumb_dir(path)
+    try:
+        folder.mkdir(parents=True, exist_ok=True)
+        name = f"{item_id}.{ext}"
+        tmp = folder / (name + ".tmp")
+        tmp.write_bytes(content)
+        os.replace(tmp, folder / name)
+    except OSError as e:
+        print(f"[storage] 썸네일 저장 실패: {e!r}")
+        raise StorageError("썸네일을 저장하지 못했어요. 디스크 공간이나 폴더 권한을 확인해 주세요.") from e
+    return name
+
+
+def load_thumbnail(name: str | None, path: Path | None = None) -> tuple[bytes, str] | None:
+    """(이미지 바이트, MIME). 파일이 없으면 None (화면에는 빈 썸네일)."""
+    if not name or "/" in name or "\\" in name or ".." in name:
+        return None
+    f = thumb_dir(path) / name
+    if not f.exists():
+        return None
+    mime = next((m for m, e in THUMB_TYPES.items() if f.suffix == "." + e), "image/png")
+    return f.read_bytes(), mime

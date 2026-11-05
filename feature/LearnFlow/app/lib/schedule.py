@@ -200,6 +200,26 @@ def events_on(d: date) -> list[str]:
     return [e for u in UNITS for (ed, e) in u[4] if ed == d]
 
 
+# 조 편성 차수: (차수, 시작일, 종료일)
+TEAM_ROUNDS = [
+    (1, date(2026, 10, 6), date(2026, 10, 27)),
+    (2, date(2026, 11, 4), date(2026, 11, 24)),
+]
+
+
+def round_for_date(d: date) -> int | None:
+    """그 날짜가 속한 조 편성 차수. 어느 차수에도 속하지 않으면 None."""
+    for no, start, end in TEAM_ROUNDS:
+        if start <= d <= end:
+            return no
+    return None
+
+
+def round_label(no: int) -> str:
+    _, start, end = next(r for r in TEAM_ROUNDS if r[0] == no)
+    return f"{no}차 ({start.month}/{start.day} – {end.month}/{end.day})"
+
+
 def camp_days() -> list[date]:
     """캠프 기간 안의 수업일 전체 (일별 캘린더의 ‹ › 이동 순서). 주말·휴강일은 빠진다."""
     return sorted({d for u in UNITS for d in unit_dates(u)})
