@@ -37,7 +37,7 @@ h2{ font-size:22px !important; line-height:30px !important; letter-spacing:-0.01
 h3{ font-size:18px !important; line-height:26px !important; font-weight:600 !important; color:var(--text-strong); }
 [data-testid="stVerticalBlockBorderWrapper"]{ border-radius: var(--radius-card) !important; background: var(--surface); }
 .stButton button, .stFormSubmitButton button{ border-radius: var(--radius-button) !important; transition: background-color .2s ease-out, border-color .2s ease-out; }
-/* 주요 버튼(primary)도 LearnFlow 배너 버튼과 같은 흰색 버튼: 흰 바탕 + 회색 테두리 + 진한 글자, 호버는 보라 테두리 */
+/* 주요 버튼(primary)도 WONMORE 배너 버튼과 같은 흰색 버튼: 흰 바탕 + 회색 테두리 + 진한 글자, 호버는 보라 테두리 */
 button[kind="primary"], button[kind="primaryFormSubmit"]{ background:#FFFFFF !important; border:1px solid var(--border) !important; color:var(--text-strong) !important; }
 button[kind="primary"]:hover, button[kind="primaryFormSubmit"]:hover{ border-color:var(--accent-border) !important; }
 button[kind="primary"] p, button[kind="primaryFormSubmit"] p{ color:var(--text-strong) !important; font-weight:600; }

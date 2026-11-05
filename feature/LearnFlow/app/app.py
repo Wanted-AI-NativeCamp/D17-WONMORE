@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""LearnFlow — 수업 자료를 구간별로 따라가며 진행 상황과 어려움을 기록한다.
+"""WONMORE 학습 캘린더 — 수업 자료를 구간별로 따라가며 진행 상황과 어려움을 기록한다.
 실행: streamlit run app.py   (먼저 python scripts/build_lessons.py)
 """
 from datetime import date, datetime
@@ -12,7 +12,7 @@ from lib import progress as pg
 from lib import schedule as sch
 from lib import storage, theme, upload
 
-st.set_page_config(page_title="LearnFlow", page_icon=":material/calendar_month:", layout="wide")
+st.set_page_config(page_title="WONMORE", page_icon=":material/calendar_month:", layout="wide")
 
 # 저장 값(beginner/advanced)은 기존 기록과 호환되도록 그대로 두고 화면 이름만 바꾼다
 MODE_LABEL = {"beginner": "차근차근 학습", "advanced": "빠르게 둘러보기"}
@@ -96,7 +96,7 @@ def home(lessons: list[dict], data: dict) -> None:
     # 배너: 왼쪽 소개 글, 오른쪽 "교육 자료 추가하기" 버튼
     with st.container(key="lf_hero", horizontal=True, vertical_alignment="bottom", horizontal_alignment="distribute"):
         st.html(
-            '<div class="lf-hero-text"><div class="lf-eyebrow">WONMORE · LearnFlow</div>'
+            '<div class="lf-hero-text"><div class="lf-eyebrow">WONMORE</div>'
             "<h1>수업 자료를 구간별로, 내 속도대로</h1>"
             "<p>수업 자료를 일별로 확인하고, 다시 봐야 할 땐 북마크로 남겨요.</p></div>"
         )
